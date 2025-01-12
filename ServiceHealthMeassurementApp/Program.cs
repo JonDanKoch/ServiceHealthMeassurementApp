@@ -1,5 +1,6 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using ServiceHealthMeassurementApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,19 +8,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHostedService<ServiceDiscoveryService>();
 
 // OpenTelemetry config to collect http metrics and log them to the console
 builder.Services.AddOpenTelemetry()
-    .WithMetrics(builder => builder
-        .AddPrometheusExporter())
     .WithTracing(tracerProviderBuilder => tracerProviderBuilder
-        .AddAspNetCoreInstrumentation()  // Http metric collection
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation() 
         .AddConsoleExporter()  // Export metrics to console
     )
     .WithMetrics(metricsProviderBuilder => metricsProviderBuilder
         .AddAspNetCoreInstrumentation()
         .AddMeter("ServiceHealthAppMetrics")
-    );
+    )
+    .WithMetrics(builder => builder
+    .AddPrometheusExporter());
 
 
 var app = builder.Build();
@@ -27,5 +30,8 @@ var app = builder.Build();
 app.MapControllers();
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint();  // Exposes /metrics endpoint for Prometheus scraping
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();
