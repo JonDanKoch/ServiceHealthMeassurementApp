@@ -11,7 +11,7 @@
         public static Dictionary<string,bool> ServiceAvailabilities = new Dictionary<string,bool>();
         
         /// <summary>
-        /// Intervall in which the service discovery happens
+        /// Intervall in which the service discovery happens.
         /// </summary>
         public static int ServiceDiscoveryIntervallSeconds = 60;
     }
