@@ -87,7 +87,7 @@ namespace ServiceHealthMeassurementApp.Services
                         {
                             if (match.Success)
                             {
-                                var discoveredServiceName = match.Groups[1].Value;
+                                var discoveredServiceName = access.Url + "_" +match.Groups[1].Value;
                                 if (!activeServiceNames.Contains(discoveredServiceName))
                                 {
                                     DiscoveredServiceHealthRepo.serviceAvailabilities[discoveredServiceName] = true;
