@@ -5,7 +5,7 @@ using ServiceHealthMeassurementApp.Utils;
 namespace ServiceHealthMeassurementApp.Controllers
 {
     /// <summary>
-    /// Class for all routes providing info about or making modifications on health discovery.
+    /// Class for all routes providing info about the health of services or making modifications on health discovery.
     /// </summary>
     [ApiController]
     [Route("api/health")]
@@ -13,7 +13,7 @@ namespace ServiceHealthMeassurementApp.Controllers
     {
 
         /// <summary>
-        /// Checks health of this service.
+        /// Checks health of this API.
         /// </summary>
         /// <returns>Statuscode 200 if service is available.</returns>
         [HttpGet("own-health")]
@@ -23,16 +23,16 @@ namespace ServiceHealthMeassurementApp.Controllers
         }
 
         /// <summary>
-        /// Displays health of all discovered services.
+        /// Displays health of all discovered Kubernetes services.
         /// </summary>
         /// <returns>health of discovered services.</returns>
         [HttpGet("discovered-services-health")]
         public List<DiscoveredService> Get_Discovered_Services_Health()
         {
             List<DiscoveredService> services = new List<DiscoveredService>();
-            foreach (var serviceName in DiscoveredServiceHealthRepo.serviceAvailabilities.Keys)
+            foreach (var serviceName in DiscoveredServiceHealthRepo.ServiceAvailabilities.Keys)
             {
-                services.Add(new DiscoveredService(serviceName, DiscoveredServiceHealthRepo.serviceAvailabilities[serviceName]));
+                services.Add(new DiscoveredService(serviceName, DiscoveredServiceHealthRepo.ServiceAvailabilities[serviceName]));
             }
             return services;
         }
@@ -40,9 +40,8 @@ namespace ServiceHealthMeassurementApp.Controllers
         /// <summary>
         /// Discoveres the services of the cluster that can be accessed by the given url.
         /// </summary>
-        /// <param name="url">url for service discovery</param>
-        /// <param name="bearerToken">access token for given url</param>
-        /// <returns></returns>
+        /// <param name="url">url for service discovery.</param>
+        /// <param name="bearerToken">access token for given url.</param>
         [HttpPost("service-discovery-urls")]
         public IActionResult AddServiceDiscoveryUrl([FromQuery] string url, [FromHeader] string bearerToken) 
         {
@@ -54,11 +53,10 @@ namespace ServiceHealthMeassurementApp.Controllers
         /// Change intervall of service discovery.
         /// </summary>
         /// <param name="duration">new service discovery intervall duration.</param>
-        /// <returns></returns>
         [HttpPost("service-discovery-period-seconds")]
         public IActionResult ModifyServiceDiscoveryPeriod([FromQuery] int duration)
         {
-            DiscoveredServiceHealthRepo.serviceDiscoveryIntervallSeconds = duration;
+            DiscoveredServiceHealthRepo.ServiceDiscoveryIntervallSeconds = duration;
             return new OkResult();
         }
     }

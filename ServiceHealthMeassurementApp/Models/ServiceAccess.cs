@@ -1,7 +1,7 @@
 ﻿namespace ServiceHealthMeassurementApp.Models
 {
     /// <summary>
-    /// Class to store service url and access token for the corresponding service.
+    /// Class to store service url and access token for the corresponding Kubernetes service.
     /// </summary>
     public class ServiceAccess
     {

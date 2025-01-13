@@ -3,7 +3,7 @@
 namespace ServiceHealthMeassurementApp.Models
 {
     /// <summary>
-    /// Stores information about a discovered kubernetes service.
+    /// Stores information about a discovered Kubernetes service.
     /// </summary>
     public class DiscoveredService
     {
