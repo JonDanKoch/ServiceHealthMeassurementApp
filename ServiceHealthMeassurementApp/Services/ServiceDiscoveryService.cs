@@ -1,6 +1,4 @@
-﻿
-
-using ServiceHealthMeassurementApp.Utils;
+﻿using ServiceHealthMeassurementApp.Utils;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using ServiceHealthMeassurementApp.Models;
