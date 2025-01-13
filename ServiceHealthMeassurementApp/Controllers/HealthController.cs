@@ -11,9 +11,6 @@ namespace ServiceHealthMeassurementApp.Controllers
     [Route("api/health")]
     public class HealthController : ControllerBase
     {
-        public HealthController()
-        {
-        }
 
         /// <summary>
         /// Checks health of this service.

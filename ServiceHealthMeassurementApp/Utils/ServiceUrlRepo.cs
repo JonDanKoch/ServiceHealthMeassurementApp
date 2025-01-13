@@ -2,32 +2,14 @@
 
 namespace ServiceHealthMeassurementApp.Utils
 {
-    public class ServiceUrlRepo
+    /// <summary>
+    /// Stores urls with access tokens for accessing the different kubernetes APIs.
+    /// </summary>
+    public static class ServiceUrlRepo
     {
-        public static List<ServiceAccess> Urls { get; set; }
-        
-        private static ServiceUrlRepo? _instance;
-
-        // Lock object for thread synchronization
-        private static readonly object _lock = new object();
-
-        public static ServiceUrlRepo Instance
-        {
-            get
-            {
-                // Double-checked locking to ensure thread-safety
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new ServiceUrlRepo();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
+        /// <summary>
+        /// Urls with access tokens that can be used to connect to the kubernetes API.
+        /// </summary>
+        public static List<ServiceAccess> Urls { get; set; } = new List<ServiceAccess>();
     }
 }
