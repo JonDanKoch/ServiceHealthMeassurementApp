@@ -1,22 +1,34 @@
 ﻿using ServiceHealthMeassurementApp.Utils;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
 using ServiceHealthMeassurementApp.Models;
+using System.Text.RegularExpressions;
 
 namespace ServiceHealthMeassurementApp.Services
 {
-    public class ServiceDiscoveryService : IHostedService, IDisposable
+    /// <summary>
+    /// IHostedService for discovering kubernetes services
+    /// </summary>
+    public class ServiceDiscoveryService : IHostedService
     {
         private Timer? _timer;
-        private TimeSpan _interval = TimeSpan.FromMinutes(1); // 1 minutes as dinterval
+        private TimeSpan _interval = TimeSpan.FromSeconds(30); // 30 seconds as dinterval
 
-
+        /// <summary>
+        /// Startup of IHostedService
+        /// </summary>
+        /// <param name="cancellationToken">cancelation token.</param>
+        /// <returns></returns>
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _timer = new Timer(ExecutePeriodicTask, null, TimeSpan.Zero, _interval);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Stop of IHostedService
+        /// </summary>
+        /// <param name="cancellationToken">cancelation token.</param>
+        /// <returns></returns>
         public Task StopAsync(CancellationToken cancellationToken)
         {
             // Clean up 
@@ -24,6 +36,10 @@ namespace ServiceHealthMeassurementApp.Services
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Periodically executed method
+        /// </summary>
+        /// <param name="state">state.</param>
         private async void ExecutePeriodicTask(object state)
         {
             await DiscoveryServicesAsync();
@@ -45,6 +61,7 @@ namespace ServiceHealthMeassurementApp.Services
             }
 
             var serviceAccesses = ServiceUrlRepo.Urls ?? new List<ServiceAccess>();
+            List<string> activeServiceNames = new List<string>();
             foreach (var access in serviceAccesses)
             {
                 string apiUrl = $"https://{access.Url}/api/v1/services";
@@ -57,21 +74,27 @@ namespace ServiceHealthMeassurementApp.Services
                 var response = await client.SendAsync(requestMessage);
                 if (response.IsSuccessStatusCode)
                 {
-                    // Deserialize the response to a .NET object (e.g., Pods list)
                     var content = await response.Content.ReadAsStringAsync();
-                    dynamic contentObject = JsonConvert.DeserializeObject(content);
-
-                    // var services = ...
-                    // foreach (var serviceName in serviceNames) DiscoveredServiceHealthRepo.serviceAvailabilities[serviceName] = true; Console.log(serviceName + "is available")
-                    // Für alle nicht verfügbaren auch mal loggen
-
+                    var serviceNamePattern = @".*""name"": ""(.*?)"",";
+                    var serviceNameRegex = new Regex(serviceNamePattern);
+                    var serviceNameMatches = serviceNameRegex.Matches(content);
+                    
+                    foreach (Match match in serviceNameMatches)
+                    {
+                        if (match.Success)
+                        {
+                            var discoveredServiceName = match.Groups[1].Value;
+                            Console.WriteLine("Available service named: " + discoveredServiceName);
+                            activeServiceNames.Add(discoveredServiceName);
+                        }
+                    }
                 }
             }
-        }
 
-        public void Dispose()
-        {
-            _timer?.Dispose();
+            foreach (var serviceName in DiscoveredServiceHealthRepo.serviceAvailabilities.Keys)
+            {
+                DiscoveredServiceHealthRepo.serviceAvailabilities[serviceName] = activeServiceNames.Contains(serviceName);
+            }
         }
     }
 }
