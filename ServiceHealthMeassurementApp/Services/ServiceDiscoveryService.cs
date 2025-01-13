@@ -31,7 +31,7 @@ namespace ServiceHealthMeassurementApp.Services
         /// <returns></returns>
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            // Clean up 
+            // Clean up
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
@@ -61,32 +61,45 @@ namespace ServiceHealthMeassurementApp.Services
             }
 
             var serviceAccesses = ServiceUrlRepo.Urls ?? new List<ServiceAccess>();
-            List<string> activeServiceNames = new List<string>();
+            HashSet<string> activeServiceNames = new HashSet<string>();
             foreach (var access in serviceAccesses)
             {
-                string apiUrl = $"https://{access.Url}/api/v1/services";
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
-
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access.BearerToken);
-
-                // Call the Kubernetes API
-                var client = new HttpClient();
-                var response = await client.SendAsync(requestMessage);
-                if (response.IsSuccessStatusCode)
+                using (HttpClient client = new HttpClient())
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var serviceNamePattern = @".*""name"": ""(.*?)"",";
-                    var serviceNameRegex = new Regex(serviceNamePattern);
-                    var serviceNameMatches = serviceNameRegex.Matches(content);
-                    
-                    foreach (Match match in serviceNameMatches)
+                    try
                     {
-                        if (match.Success)
+                        // Make the HTTP GET request to a URL
+                        string url = $"http://{access.Url}/api/v1/services";
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access.BearerToken);
+                        HttpResponseMessage response = await client.GetAsync(url);
+
+                        // Ensure the request was successful
+                        response.EnsureSuccessStatusCode();
+
+                        // Read the response body as a string
+                        string content = await response.Content.ReadAsStringAsync();
+
+                        var serviceNamePattern = @"(?<=\{""metadata"":\{""name"":""(.*?)"",""namespace"")";
+                        var serviceNameRegex = new Regex(serviceNamePattern);
+                        var serviceNameMatches = serviceNameRegex.Matches(content);
+
+                        foreach (Match match in serviceNameMatches)
                         {
-                            var discoveredServiceName = match.Groups[1].Value;
-                            Console.WriteLine("Available service named: " + discoveredServiceName);
-                            activeServiceNames.Add(discoveredServiceName);
+                            if (match.Success)
+                            {
+                                var discoveredServiceName = match.Groups[1].Value;
+                                if (!activeServiceNames.Contains(discoveredServiceName))
+                                {
+                                    DiscoveredServiceHealthRepo.serviceAvailabilities[discoveredServiceName] = true;
+                                    Console.WriteLine("Available service named: " + discoveredServiceName);
+                                    activeServiceNames.Add(discoveredServiceName);
+                                }
+                            }
                         }
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        Console.WriteLine($"Request error: {e.Message}");
                     }
                 }
             }
