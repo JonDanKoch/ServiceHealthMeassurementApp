@@ -2,16 +2,15 @@
 
 using ServiceHealthMeassurementApp.Utils;
 using System.Net.Http.Headers;
-using System.Net.Http;
 using Newtonsoft.Json;
-using System.Collections.Generic;
+using ServiceHealthMeassurementApp.Models;
 
 namespace ServiceHealthMeassurementApp.Services
 {
     public class ServiceDiscoveryService : IHostedService, IDisposable
     {
         private Timer? _timer;
-        private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // 1 minutes interval
+        private TimeSpan _interval = TimeSpan.FromMinutes(1); // 1 minutes as dinterval
 
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -27,9 +26,16 @@ namespace ServiceHealthMeassurementApp.Services
             return Task.CompletedTask;
         }
 
-        private void ExecutePeriodicTask(object state)
+        private async void ExecutePeriodicTask(object state)
         {
-            DiscoveryServicesAsync();
+            await DiscoveryServicesAsync();
+            var configeredIntervallSeconds = DiscoveredServiceHealthRepo.serviceDiscoveryIntervallSeconds;
+
+            if ((int)_interval.TotalSeconds != configeredIntervallSeconds)
+            {
+                _interval = TimeSpan.FromSeconds(configeredIntervallSeconds);
+                _timer = new Timer(ExecutePeriodicTask, null, TimeSpan.Zero, _interval);
+            }
         }
 
         private async Task DiscoveryServicesAsync()
@@ -40,13 +46,13 @@ namespace ServiceHealthMeassurementApp.Services
                 DiscoveredServiceHealthRepo.serviceAvailabilities[key] = false;
             }
 
-            var urls = ServiceUrlRepo.Urls ?? new List<string>();
-            foreach (var url in urls)
+            var serviceAccesses = ServiceUrlRepo.Urls ?? new List<ServiceAccess>();
+            foreach (var access in serviceAccesses)
             {
-                string apiUrl = $"https://{url}/api/v1/pods"; 
+                string apiUrl = $"https://{access.Url}/api/v1/services";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
 
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "<your-token>");
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access.BearerToken);
 
                 // Call the Kubernetes API
                 var client = new HttpClient();

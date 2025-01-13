@@ -1,10 +1,12 @@
-﻿namespace ServiceHealthMeassurementApp.Utils
+﻿using ServiceHealthMeassurementApp.Models;
+
+namespace ServiceHealthMeassurementApp.Utils
 {
     public class ServiceUrlRepo
     {
-        public static List<string> Urls { get; set; }
+        public static List<ServiceAccess> Urls { get; set; }
         
-        private static ServiceUrlRepo _instance;
+        private static ServiceUrlRepo? _instance;
 
         // Lock object for thread synchronization
         private static readonly object _lock = new object();

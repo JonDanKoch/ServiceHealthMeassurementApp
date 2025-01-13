@@ -3,8 +3,9 @@
     public class DiscoveredServiceHealthRepo
     {
         public static Dictionary<string,bool> serviceAvailabilities = new Dictionary<string,bool>();
+        public static int serviceDiscoveryIntervallSeconds = 60;
         
-        private static DiscoveredServiceHealthRepo _instance;
+        private static DiscoveredServiceHealthRepo? _instance;
 
         // Lock object for thread synchronization
         private static readonly object _lock = new object();

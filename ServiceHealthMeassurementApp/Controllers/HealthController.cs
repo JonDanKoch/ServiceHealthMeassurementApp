@@ -4,6 +4,9 @@ using ServiceHealthMeassurementApp.Utils;
 
 namespace ServiceHealthMeassurementApp.Controllers
 {
+    /// <summary>
+    /// Class for all routes providing info about or making modifications on health discovery.
+    /// </summary>
     [ApiController]
     [Route("api/health")]
     public class HealthController : ControllerBase
@@ -12,12 +15,20 @@ namespace ServiceHealthMeassurementApp.Controllers
         {
         }
 
+        /// <summary>
+        /// Checks health of this service.
+        /// </summary>
+        /// <returns>Statuscode 200 if service is available.</returns>
         [HttpGet("own-health")]
         public IActionResult Get_Own_Health()
         {
             return new OkResult();
         }
 
+        /// <summary>
+        /// Displays health of all discovered services.
+        /// </summary>
+        /// <returns>health of discovered services.</returns>
         [HttpGet("discovered-services-health")]
         public List<DiscoveredService> Get_Discovered_Services_Health()
         {
@@ -29,10 +40,28 @@ namespace ServiceHealthMeassurementApp.Controllers
             return services;
         }
 
+        /// <summary>
+        /// Discoveres the services of the cluster that can be accessed by the given url.
+        /// </summary>
+        /// <param name="url">url for service discovery</param>
+        /// <param name="bearerToken">access token for given url</param>
+        /// <returns></returns>
         [HttpPost("service-discovery-urls")]
-        public IActionResult AddServiceDiscoveryUrl([FromQuery] string url) 
+        public IActionResult AddServiceDiscoveryUrl([FromQuery] string url, [FromHeader] string bearerToken) 
         {
-            ServiceUrlRepo.Urls.Add(url);
+            ServiceUrlRepo.Urls.Add(new ServiceAccess(url, bearerToken));
+            return new OkResult();
+        }
+
+        /// <summary>
+        /// Change intervall of service discovery.
+        /// </summary>
+        /// <param name="duration">new service discovery intervall duration.</param>
+        /// <returns></returns>
+        [HttpPost("service-discovery-period-seconds")]
+        public IActionResult ModifyServiceDiscoveryPeriod([FromQuery] int duration)
+        {
+            DiscoveredServiceHealthRepo.serviceDiscoveryIntervallSeconds = duration;
             return new OkResult();
         }
     }
