@@ -53,7 +53,7 @@ namespace ServiceHealthMeassurementApp.Controllers
         /// Change intervall of service discovery.
         /// </summary>
         /// <param name="duration">new service discovery intervall duration.</param>
-        [HttpPost("service-discovery-period-seconds")]
+        [HttpPut("service-discovery-period-seconds")]
         public IActionResult ModifyServiceDiscoveryPeriod([FromQuery] int duration)
         {
             DiscoveredServiceHealthRepo.ServiceDiscoveryIntervallSeconds = duration;

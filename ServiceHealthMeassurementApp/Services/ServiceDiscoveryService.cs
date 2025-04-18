@@ -52,12 +52,6 @@ namespace ServiceHealthMeassurementApp.Services
 
         private async Task DiscoveryServicesAsync()
         {
-            // Set all service availabilities to false before starting new discovery
-            foreach (var key in DiscoveredServiceHealthRepo.ServiceAvailabilities.Keys.ToList())
-            {
-                DiscoveredServiceHealthRepo.ServiceAvailabilities[key] = false;
-            }
-
             var serviceAccesses = ServiceUrlRepo.Urls ?? new List<ServiceAccess>();
             HashSet<string> activeServiceNames = new HashSet<string>();
             foreach (var access in serviceAccesses)

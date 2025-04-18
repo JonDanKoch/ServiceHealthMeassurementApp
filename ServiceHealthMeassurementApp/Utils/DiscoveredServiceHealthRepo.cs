@@ -13,6 +13,6 @@
         /// <summary>
         /// Intervall in which the service discovery happens.
         /// </summary>
-        public static int ServiceDiscoveryIntervallSeconds = 60;
+        public static int ServiceDiscoveryIntervallSeconds = 30;
     }
 }
